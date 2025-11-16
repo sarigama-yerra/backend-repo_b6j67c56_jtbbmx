@@ -11,38 +11,46 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, Literal
+from datetime import datetime
 
-# Example schemas (replace with your own):
+# ----------------------
+# Core HMS Schemas
+# ----------------------
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
+class Patient(BaseModel):
+    full_name: str = Field(..., description="Patient full name")
     age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    gender: Optional[Literal["Male", "Female", "Other"]] = Field(None, description="Gender")
+    phone: Optional[str] = Field(None, description="Contact phone number")
+    address: Optional[str] = Field(None, description="Home address")
+    medical_history: Optional[str] = Field(None, description="Past medical history / notes")
+
+class Doctor(BaseModel):
+    full_name: str = Field(..., description="Doctor full name")
+    specialization: Optional[str] = Field(None, description="Specialization/Department")
+    phone: Optional[str] = Field(None, description="Contact phone number")
+    email: Optional[EmailStr] = Field(None, description="Professional email")
+
+class Appointment(BaseModel):
+    patient_id: str = Field(..., description="Linked patient ID")
+    doctor_id: str = Field(..., description="Linked doctor ID")
+    date_time: datetime = Field(..., description="Appointment date and time (ISO)")
+    reason: Optional[str] = Field(None, description="Reason / symptoms")
+    status: Literal["Scheduled", "Completed", "Cancelled"] = Field("Scheduled", description="Appointment status")
+
+# Example schemas kept for reference (not used by app directly)
+class User(BaseModel):
+    name: str
+    email: str
+    address: str
+    age: Optional[int] = Field(None, ge=0, le=120)
+    is_active: bool = True
 
 class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+    title: str
+    description: Optional[str] = None
+    price: float = Field(..., ge=0)
+    category: str
+    in_stock: bool = True
